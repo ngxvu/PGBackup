@@ -1,14 +1,60 @@
 package checkPsqlLatestVersion
 
 import (
-	"PgDtaBseBckUp/model"
+	"backup/model"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"io"
 	"log"
 	"net/http"
+	"regexp"
+	"strings"
 )
+
+// GetAndParseServerVersion gets and parses the PostgreSQL server version
+func GetAndParseServerVersion(db *sql.DB) (*model.PostgresqlVersion, error) {
+	serverPsqlVersion, err := checkDatabaseVersion(db)
+	if err != nil {
+		return nil, fmt.Errorf("error checking database version: %v", err)
+	}
+
+	parsedVersion, err := parsePostgresqlVersion(*serverPsqlVersion)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing version: %v", err)
+	}
+
+	return parsedVersion, nil
+}
+
+func checkDatabaseVersion(db *sql.DB) (*string, error) {
+	var version string
+	err := db.QueryRow("SHOW server_version").Scan(&version)
+	if err != nil {
+		return nil, fmt.Errorf("error querying database version: %v", err)
+	}
+	return &version, nil
+}
+
+func parsePostgresqlVersion(versionString string) (*model.PostgresqlVersion, error) {
+	re := regexp.MustCompile(`(\d+\.\d+)`)
+	matches := re.FindStringSubmatch(versionString)
+	if len(matches) < 2 {
+		return nil, fmt.Errorf("invalid version string: %s", versionString)
+	}
+
+	latestVersionWithMinor := matches[1]
+	versionParts := strings.Split(latestVersionWithMinor, ".")
+	versionMinor := versionParts[0]
+	patchVersion := versionParts[1]
+
+	return &model.PostgresqlVersion{
+		LatestVersionWithMinor: &latestVersionWithMinor,
+		VersionMinor:           &versionMinor,
+		PatchVersion:           &patchVersion,
+	}, nil
+}
 
 func CheckCurrentPostgresqlLatestVersion() (*model.PostgresqlVersion, error) {
 

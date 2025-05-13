@@ -3,16 +3,15 @@ package model
 const (
 	InstallersDir                   = "./installers"
 	PG_LATEST_VERSION_DOWNLOADS_URL = "https://www.enterprisedb.com/downloads/postgres-postgresql-downloads"
-	BackupDir                       = "./backups"
+	BackupDirPublic                 = "./backups/public"
 )
 
 type DatabaseCredentials struct {
-	PgUser     string `json:"pgUser"`
-	PgPassword string `json:"pgPassword"`
 	PgHost     string `json:"pgHost"`
 	PgPort     string `json:"pgPort"`
+	PgUser     string `json:"pgUser"`
+	PgPassword string `json:"pgPassword"`
 	PgDatabase string `json:"pgDatabase"`
-	PgUrl      string `json:"pgUrl"`
 }
 
 type CheckPostgresqlLatestVersionModel struct {

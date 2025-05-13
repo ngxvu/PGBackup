@@ -1,7 +1,7 @@
 package downloadPsqlInstaller
 
 import (
-	"PgDtaBseBckUp/model"
+	"backup/model"
 	"fmt"
 	"io"
 	"log"
