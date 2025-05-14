@@ -2,7 +2,6 @@
 
 [![Go Version](https://img.shields.io/badge/Go-1.23.1+-00ADD8?style=flat&logo=go)](https://go.dev/doc/install)
 [![Windows](https://img.shields.io/badge/Platform-Windows-0078D6?style=flat&logo=windows)](https://www.microsoft.com/windows)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-latest-336791?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [English](#english) | [Tiếng Việt 🇻🇳](README_vi.md)
 
