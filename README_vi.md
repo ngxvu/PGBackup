@@ -2,6 +2,9 @@
 
 [English 🇬🇧](README.md)
 
+## Giới thiệu:
+"Khi bắt đầu học lập trình, mình chọn mua một chiếc laptop chạy Windows vì nó tiện lợi, quen thuộc và rẻ hơn so với các dòng Macbook. Sử dụng PostgreSQL hàng ngày, mình quyết định tạo ra một công cụ giúp sao lưu cơ sở dữ liệu PostgreSQL một cách dễ dàng và nhanh chóng. Tất nhiên, nếu bạn đang sử dụng các dịch vụ cơ sở dữ liệu đám mây như AWS, GCP hoặc Azure, sẽ có những cách khác để thực hiện việc này. Nhưng nếu bạn chưa cân nhắc đến chúng, công cụ này sẽ rất phù hợp với bạn. Được thiết kế dành cho Windows, mình tin rằng công cụ này sẽ rất hữu ích!"
+
 ## Cấu Trúc Dự Án
 Dự án được tổ chức như sau:
 
