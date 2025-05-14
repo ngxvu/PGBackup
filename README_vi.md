@@ -1,6 +1,6 @@
 # Công Cụ Sao Lưu Cơ Sở Dữ Liệu PostgreSQL
 
-[English](README.md) | [Tiếng Việt](README_vi.md)
+[English 🇬🇧](README.md)
 
 ## Cấu Trúc Dự Án
 Dự án được tổ chức như sau:
@@ -35,6 +35,19 @@ Repository này chứa ứng dụng Go để tạo các bản sao lưu cơ sở 
 - Tự động cài đặt PostgreSQL nếu cần
 - Xử lý sao lưu đồng thời
 - Sao lưu theo schema cụ thể
+
+## Yêu cầu
+- Hệ điều hành Windows
+- Go 1.23.1 hoặc cao hơn
+- PostgreSQL Windows (nếu chưa cài đặt, ứng dụng sẽ nhắc bạn cài đặt)
+
+## Cách công cụ này hoạt động
+- Ứng dụng kiểm tra xem công cụ client PostgreSQL có phải là phiên bản mới nhất không.
+- Nếu không tìm thấy công cụ, ứng dụng sẽ yêu cầu bạn cài đặt, hoặc cập nhật nếu không phải là phiên bản mới nhất.
+- Sau đó ứng dụng sẽ kết nối đến cơ sở dữ liệu PostgreSQL sử dụng thông tin đăng nhập đã cung cấp.
+- Ứng dụng sử dụng lệnh pg_dump để tạo bản sao lưu của các schema được chỉ định.
+- Các bản sao lưu được lưu trữ trong thư mục backups/, được tổ chức theo schema và phiên bản.
+- Ứng dụng sẽ tự động tạo các thư mục cần thiết nếu chúng chưa tồn tại.
 
 ## Cài đặt
 
@@ -112,13 +125,13 @@ func PerformDatabaseBackups(creds *model.DatabaseCredentials, version string) er
     wg.Add(2)
     go func() {
         defer wg.Done()
-        if err := BackupDatabase(creds, version, "public", model.BackupDirPublic); err != nil {
+        if err := BackupDatabase(creds, version, "public"); err != nil {
             errChan <- fmt.Errorf("lỗi khi sao lưu schema public: %v", err)
         }
     }()
     go func() {
         defer wg.Done()
-        if err := BackupDatabaseCustomSchema(creds, version, "new_schema", model.BackupDirNewSchema); err != nil {
+        if err := BackupDatabaseCustomSchema(creds, version, "new_schema"); err != nil {
             errChan <- fmt.Errorf("lỗi khi sao lưu schema mới: %v", err)
         }
     }()
@@ -134,12 +147,5 @@ func PerformDatabaseBackups(creds *model.DatabaseCredentials, version string) er
 }
 ```
 
-## Yêu cầu
-
-- Hệ điều hành Windows
-- Go 1.23.1 trở lên
-- Kết nối internet (để cài đặt PostgreSQL nếu cần)
-
 ## Đóng góp
 Đóng góp luôn được hoan nghênh! Vui lòng mở issue hoặc gửi pull request cho bất kỳ cải tiến hoặc sửa lỗi nào.
-```

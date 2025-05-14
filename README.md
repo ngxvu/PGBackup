@@ -1,28 +1,28 @@
 # PostgreSQL Database Backup Tool
 
-[Tiếng Việt](README_vi.md) | [English](README.md)
+[Tiếng Việt 🇻🇳](README_vi.md)
 
 ## Project Layout
 The project is organized as follows:
 
 ```
 backup/
-├── backupFunc/                           # Chứa các hàm thực hiện sao lưu
-│   └── backupFunc.go                     # Chức năng sao lưu chính
-├── backups/                              # Thư mục lưu trữ file backup (thư mục này sẽ được tạo tự động)
-├── config/                               # Quản lý cấu hình
-│   ├── addingPath/                       # Tiện ích đường dẫn PostgreSQL
-│   ├── checkPsqlLatestVersion/           # Tiện ích kiểm tra phiên bản
-│   ├── checkPsqlVersionExistOnWindows/   # Xác minh cài đặt
-│   ├── dbconfig/                         # Tiện ích cấu hình cơ sở dữ liệu
-│   ├── downloadPsqlInstaller/            # Tiện ích tải xuống bộ cài đặt PostgreSQL
-│   ├── getCurrentFolderPath/             # Tiện ích lấy đường dẫn thư mục hiện tại
-│   └── installPsql/                      # Tiện ích cài đặt PostgreSQL
-├── model/                                # Các cấu trúc dữ liệu và hằng số
-├── .env                                  # Biến môi trường (cần tạo file này, xem README để biết chi tiết)
-├── .gitignore                            # File Git ignore
-├── main.go                               # Điểm vào ứng dụng
-└── README.md                             # Tài liệu dự án
+├── backupFunc/                           # Contains backup execution functions
+│   └── backupFunc.go                     # Core backup functionality
+├── backups/                              # Backup files directory (this directory will be created automatically)
+├── config/                               # Configuration management
+│   ├── addingPath/                       # PostgreSQL path utilities
+│   ├── checkPsqlLatestVersion/           # Version checking utilities
+│   ├── checkPsqlVersionExistOnWindows/   # Install verification
+│   ├── dbconfig/                         # Database configuration utilities
+│   ├── downloadPsqlInstaller/            # PostgreSQL installer download utilities
+│   ├── getCurrentFolderPath/             # Current folder path utilities
+│   └── installPsql/                      # PostgreSQL installation utilities
+├── model/                                # Data structures and constants
+├── .env                                  # Environment variables (this file needs to be created, read the README for details)
+├── .gitignore                            # Git ignore file
+├── main.go                               # Application entry point
+└── README.md                             # Project documentation
 ```
 
 This repository contains a Go application for creating automated PostgreSQL database backups. The tool connects to PostgreSQL databases, verifies compatibility, and creates backups of specified schemas.
@@ -35,6 +35,19 @@ This repository contains a Go application for creating automated PostgreSQL data
 - Automatic PostgreSQL installation if needed
 - Concurrent backup processing
 - Schema-specific backups
+
+## Requirements
+- Windows operating system
+- Go 1.23.1 or higher
+- PostgreSQL client tools (if not installed, the application will prompt for installation)
+
+## How this tool works
+- The application checks for the PostgreSQL client tools if it is the latest version.
+- If the tools are not found, it will prompt you to install them, or update them if they are not the latest version.
+- The application will then connect to the PostgreSQL database using the provided credentials.
+- It use the `pg_dump` command to create backups of the specified schemas.
+- The backups are stored in the `backups/` directory, organized by schema and version.
+- The application will create the necessary directories if they do not exist.
 
 ## Setup
 
@@ -113,13 +126,13 @@ func PerformDatabaseBackups(creds *model.DatabaseCredentials, version string) er
     wg.Add(2)
     go func() {
         defer wg.Done()
-        if err := BackupDatabase(creds, version, "public", model.BackupDirPublic); err != nil {
+        if err := BackupDatabase(creds, version, "public"); err != nil {
             errChan <- fmt.Errorf("error backing up public schema: %v", err)
         }
     }()
     go func() {
         defer wg.Done()
-        if err := BackupDatabaseCustomSchema(creds, version, "new_schema", model.BackupDirNewSchema); err != nil {
+        if err := BackupDatabaseCustomSchema(creds, version, "new_schema"); err != nil {
             errChan <- fmt.Errorf("error backing up new schema: %v", err)
         }
     }()
@@ -134,13 +147,6 @@ func PerformDatabaseBackups(creds *model.DatabaseCredentials, version string) er
     return nil
 }
 ```
-```
-
-## Requirements
-
-- Windows operating system
-- Go 1.23.1 or higher
-- Internet connection (for PostgreSQL installation if needed)
 
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
