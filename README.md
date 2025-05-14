@@ -96,19 +96,22 @@ go run main.go
 ```
 
 ## 🛠️ Creating Custom Backups
-Extend the tool to back up additional schemas using the BackupDatabase() function:
+
+You can extend the tool to back up additional schemas by using the `BackupDatabase()` function at `backupFunc/backupFunc.go`. This function is designed to back up a specific schema in your PostgreSQL database.
+
+### Function Definition:
 
 ```go
 func BackupDatabase(creds *model.DatabaseCredentials, version, schema string) error
 ```
 
 ### Parameters:
-
-- `creds`: Database credentials
-- `version`: PostgreSQL version (automatically detected)
-- `schema`: Schema name to backup (e.g., "public", "<your_custom_schema_name>")
+- `creds`: Database credentials (e.g., username, password, host, etc.)
+- `version`: PostgreSQL version (automatically detected by the tool)
+- `schema`: The schema name to back up (e.g., "public", "your_custom_schema_name")
 
 ### Example Implementation:
+To back up a new schema, create a new function like this:
 
 ```go
 func BackupDatabaseNewSchema(creds *model.DatabaseCredentials, version string) error {
@@ -116,7 +119,8 @@ return BackupDatabase(creds, version, "new_schema")
 }
 ```
 
-Add it to your backup process in `PerformDatabaseBackups()`:
+Integrating the New Schema Backup
+Add the new schema backup to the PerformDatabaseBackups() function. For example:
 
 ```go
 go func () {
@@ -127,7 +131,8 @@ errChan <- fmt.Errorf("error backing up custom schema: %v", err)
 }()
 ```
 
-And remember to change the `go` routine in the `PerformDatabaseBackups()` function to include the new schema backup:
+Updated PerformDatabaseBackups() Function
+Here is the updated PerformDatabaseBackups() function with the new schema backup included:
 
 ```go
 func PerformDatabaseBackups(creds *model.DatabaseCredentials, version string) error {
@@ -161,6 +166,7 @@ return err
 return nil
 }
 ```
+By following these steps, you can easily add support for backing up additional schemas.
 
 ## ❓ FAQ
 <details> <summary>Will this work on Linux or macOS?</summary> Currently, this tool is designed specifically for Windows. Path handling and PostgreSQL installation would need modifications for other operating systems. </details> <details> <summary>How large of a database can this tool handle?</summary> The tool uses the standard PostgreSQL pg_dump utility, so it inherits the same limitations. For very large databases (several GB), expect the process to take longer. </details> <details> <summary>Where are my backups stored?</summary> Backups are stored in the backups/ directory, organized by schema name with timestamped filenames. </details> <details> <summary>Can I schedule automated backups?</summary> Yes! Use Windows Task Scheduler to run the application at scheduled intervals. </details>
