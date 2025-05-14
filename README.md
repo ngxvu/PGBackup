@@ -99,7 +99,7 @@ go run main.go
 Extend the tool to back up additional schemas using the BackupDatabase() function:
 
 ```go
-func BackupDatabase(creds *model.DatabaseCredentials, version, schemastring) error
+func BackupDatabase(creds *model.DatabaseCredentials, version, schema string) error
 ```
 
 ### Parameters:
@@ -131,10 +131,13 @@ And remember to change the `go` routine in the `PerformDatabaseBackups()` functi
 
 ```go
 func PerformDatabaseBackups(creds *model.DatabaseCredentials, version string) error {
+	
 var wg sync.WaitGroup
-errChan := make(chan error, 2)
+wgCount := 2
+errChan := make(chan error, wgCount)
 
-wg.Add(2)
+wg.Add(wgCount)
+
 go func () {
 defer wg.Done()
 if err := BackupDatabase(creds, version, "public"); err != nil {
@@ -150,11 +153,11 @@ errChan <- fmt.Errorf("error backing up new schema: %v", err)
 
 wg.Wait()
 close(errChan)
+
 for err := range errChan {
-if err != nil {
 return err
 }
-}
+
 return nil
 }
 ```
