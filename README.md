@@ -2,6 +2,7 @@
 
 [![Go Version](https://img.shields.io/badge/Go-1.23.1+-00ADD8?style=flat&logo=go)](https://go.dev/doc/install)
 [![Windows](https://img.shields.io/badge/Platform-Windows-0078D6?style=flat&logo=windows)](https://www.microsoft.com/windows)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-latest-336791?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
 [English](#english) | [Tiếng Việt 🇻🇳](README_vi.md)
 
@@ -18,7 +19,6 @@ I grew up using Windows, so when I decided to learn coding, I chose a Windows la
 While cloud databases like AWS, GCP, or Azure offer their own backup solutions, this tool is perfect if you're using a local PostgreSQL server or need an additional backup layer.
 
 ## 📂 Project Structure
-The project is organized as follows:
 
 ```
 backup/
