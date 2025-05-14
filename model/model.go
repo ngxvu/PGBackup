@@ -3,9 +3,6 @@ package model
 const (
 	InstallersDir                   = "./installers"
 	PG_LATEST_VERSION_DOWNLOADS_URL = "https://www.enterprisedb.com/downloads/postgres-postgresql-downloads"
-
-	// Backup directories
-	BackupDirPublic = "./backups/public" // Public schema
 )
 
 type DatabaseCredentials struct {

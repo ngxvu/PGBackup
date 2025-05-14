@@ -20,6 +20,7 @@ func main() {
 	creds, err := dbconfig.ScanCredsInformation()
 	if err != nil {
 		log.Fatalf("Error scanning credentials: %v", err)
+		log.Fatalf("Không thể lấy thông tin đăng nhập postgresql")
 	}
 
 	// Connect to database

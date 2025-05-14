@@ -10,8 +10,10 @@ import (
 	"time"
 )
 
-func BackupDatabase(creds *model.DatabaseCredentials, version, schema, backupDir string) error {
+func BackupDatabase(creds *model.DatabaseCredentials, version, schema string) error {
 	programFilesDir := "C:\\Program Files\\PostgreSQL\\" + version + "\\bin"
+
+	backupDir, _ := createSchemaDir(schema)
 
 	// Create backup directory if not exists
 	if err := os.MkdirAll(backupDir, os.ModePerm); err != nil {
@@ -53,11 +55,16 @@ func BackupDatabase(creds *model.DatabaseCredentials, version, schema, backupDir
 	return nil
 }
 
+func createSchemaDir(schema string) (string, error) {
+	schemaDir := fmt.Sprintf("./backups/%s", schema)
+	return schemaDir, nil
+}
+
 func BackupDatabasePublic(creds *model.DatabaseCredentials, version string) error {
-	return BackupDatabase(creds, version, "public", model.BackupDirPublic)
+	return BackupDatabase(creds, version, "public")
 }
 
 // to create new backup function, just copy the BackupDatabase function and change the schema name, for example:
 //func BackupDatabaseNewSchema(creds *model.DatabaseCredentials, version string) error {
-//	return BackupDatabase(creds, version, "new_schema", model.BackupDirNewSchema)
+//	return BackupDatabase(creds, version, "new_schema")
 //}

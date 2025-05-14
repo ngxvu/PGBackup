@@ -14,7 +14,7 @@ import (
 func ScanCredsInformation() (*model.DatabaseCredentials, error) {
 	err := godotenv.Load()
 	if err != nil {
-		return nil, fmt.Errorf("error loading .env file: %v", err)
+		fmt.Println("No .env file found, please enter database credentials manually.")
 	}
 
 	var databaseCredentials model.DatabaseCredentials
