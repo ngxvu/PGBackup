@@ -45,8 +45,15 @@ func main() {
 	}
 
 	// Add PostgreSQL bin to PATH
-	if err = addingPath.AddPath(addPathVersion); err != nil {
+	needsRelaunch, err := addingPath.AddPath(addPathVersion)
+	if err != nil {
 		log.Fatalf("Error adding PostgreSQL path to system Path: %v", err)
+	}
+
+	// Nếu đã khởi động tiến trình admin mới, thoát
+	if needsRelaunch {
+		log.Println("Application restarting with admin privileges...")
+		return
 	}
 
 	// Perform backups concurrently
@@ -60,14 +67,22 @@ func main() {
 // PerformDatabaseBackups runs all database backups concurrently
 func PerformDatabaseBackups(creds *model.DatabaseCredentials, addPathVersion string) error {
 	var wg sync.WaitGroup
-	errChan := make(chan error, 1)
+	wgCount := 2
+	errChan := make(chan error, wgCount)
 
-	wg.Add(1)
+	wg.Add(wgCount)
 
 	go func() {
 		defer wg.Done()
 		if err := backupFunc.BackupDatabasePublic(creds, addPathVersion); err != nil {
 			errChan <- fmt.Errorf("error backing up public database: %v", err)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		if err := backupFunc.BackupDatabaseNewSchema(creds, addPathVersion); err != nil {
+			errChan <- fmt.Errorf("error backing up private database: %v", err)
 		}
 	}()
 

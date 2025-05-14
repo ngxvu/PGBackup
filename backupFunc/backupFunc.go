@@ -65,6 +65,6 @@ func BackupDatabasePublic(creds *model.DatabaseCredentials, version string) erro
 }
 
 // to create new backup function, just copy the BackupDatabase function and change the schema name, for example:
-//func BackupDatabaseNewSchema(creds *model.DatabaseCredentials, version string) error {
-//	return BackupDatabase(creds, version, "new_schema")
-//}
+func BackupDatabaseNewSchema(creds *model.DatabaseCredentials, version string) error {
+	return BackupDatabase(creds, version, "dblog")
+}

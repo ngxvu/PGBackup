@@ -8,26 +8,26 @@ import (
 	"syscall"
 )
 
-func AddPath(version string) error {
+func AddPath(version string) (bool, error) {
 	if !isAdmin() {
+		log.Println("Requesting admin privileges to add PostgreSQL to PATH...")
 		err := runAsAdmin()
 		if err != nil {
-			return fmt.Errorf("error requesting admin privileges: %v", err)
+			return false, fmt.Errorf("error requesting admin privileges: %v", err)
 		}
-		return nil
+		// Trả về là đã khởi động tiến trình admin mới
+		return true, nil
 	}
 
 	customPath := "C:\\Program Files\\PostgreSQL\\" + version + "\\bin"
 
 	err := addToSystemPath(customPath)
 	if err != nil {
-		return fmt.Errorf("error adding custom path to system PATH: %v", err)
+		return false, fmt.Errorf("error adding custom path to system PATH: %v", err)
 	}
 
-	mess := fmt.Sprintf("Custom path added to system PATH: %s\n", customPath)
-	log.Println(mess)
-
-	return nil
+	log.Printf("Custom path added to system PATH: %s\n", customPath)
+	return false, nil
 }
 
 func isAdmin() bool {
