@@ -2,25 +2,32 @@ package main
 
 import (
 	"backup/backupFunc"
-	"backup/config/addingPath"
 	"backup/config/checkPsqlLatestVersion"
 	"backup/config/checkPsqlVersionExistOnWindows"
 	"backup/config/dbconfig"
-	"backup/model"
 	"fmt"
 	"log"
-	"sync"
+	"os"
+	"os/exec"
+	"syscall"
 )
 
 func main() {
 	// Initialize logging and setup
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
+	elevated := false
+	for _, arg := range os.Args {
+		if arg == "--elevated" {
+			elevated = true
+			break
+		}
+	}
+
 	// Get database credentials
 	creds, err := dbconfig.ScanCredsInformation()
 	if err != nil {
 		log.Fatalf("Error scanning credentials: %v", err)
-		log.Fatalf("Không thể lấy thông tin đăng nhập postgresql")
 	}
 
 	// Connect to database
@@ -44,56 +51,80 @@ func main() {
 		log.Fatalf("Error handling PostgreSQL installation: %v", err)
 	}
 
-	// Add PostgreSQL bin to PATH
-	needsRelaunch, err := addingPath.AddPath(addPathVersion)
-	if err != nil {
-		log.Fatalf("Error adding PostgreSQL path to system Path: %v", err)
-	}
+	if !elevated {
+		needsRelaunch, err := addPath(addPathVersion)
+		if err != nil {
+			log.Fatalf("Error adding PostgreSQL path to system Path: %v", err)
+		}
 
-	// Nếu đã khởi động tiến trình admin mới, thoát
-	if needsRelaunch {
-		log.Println("Application restarting with admin privileges...")
-		return
+		if needsRelaunch {
+			log.Println("Application restarting with admin privileges... Backup will run in elevated process")
+			log.Println("Backup successful")
+			return
+		}
+	} else {
+		customPath := "C:\\Program Files\\PostgreSQL\\" + addPathVersion + "\\bin"
+		err := addToSystemPath(customPath)
+		if err != nil {
+			log.Fatalf("Error adding custom path to system PATH: %v", err)
+		}
+		log.Printf("Custom path added to system PATH: %s\n", customPath)
 	}
 
 	// Perform backups concurrently
-	if err = PerformDatabaseBackups(creds, addPathVersion); err != nil {
+	if err = backupFunc.PerformDatabaseBackups(creds, addPathVersion); err != nil {
 		log.Fatalf("Backup failed: %v", err)
 	}
 
 	log.Println("Backup successful")
 }
 
-// PerformDatabaseBackups runs all database backups concurrently
-func PerformDatabaseBackups(creds *model.DatabaseCredentials, addPathVersion string) error {
-	var wg sync.WaitGroup
-	wgCount := 2
-	errChan := make(chan error, wgCount)
-
-	wg.Add(wgCount)
-
-	go func() {
-		defer wg.Done()
-		if err := backupFunc.BackupDatabasePublic(creds, addPathVersion); err != nil {
-			errChan <- fmt.Errorf("error backing up public database: %v", err)
+func addPath(version string) (bool, error) {
+	if !isAdmin() {
+		log.Println("Requesting admin privileges to add PostgreSQL to PATH...")
+		err := runAsAdmin()
+		if err != nil {
+			return false, fmt.Errorf("error requesting admin privileges: %v", err)
 		}
-	}()
+		return true, nil
+	}
 
-	go func() {
-		defer wg.Done()
-		if err := backupFunc.BackupDatabaseNewSchema(creds, addPathVersion); err != nil {
-			errChan <- fmt.Errorf("error backing up private database: %v", err)
-		}
-	}()
+	customPath := "C:\\Program Files\\PostgreSQL\\" + version + "\\bin"
+	err := addToSystemPath(customPath)
+	if err != nil {
+		return false, fmt.Errorf("error adding custom path to system PATH: %v", err)
+	}
 
-	// Wait for all goroutines to complete
-	wg.Wait()
-	close(errChan)
+	log.Printf("Custom path added to system PATH: %s\n", customPath)
+	return false, nil
+}
 
-	// Check for errors
-	for err := range errChan {
+func addToSystemPath(path string) error {
+	cmd := exec.Command("powershell", "-Command", fmt.Sprintf(`
+		$currentPath = [Environment]::GetEnvironmentVariable('Path', 'Machine');
+		if ($currentPath -notlike '*%s*') {
+			[Environment]::SetEnvironmentVariable('Path', $currentPath + ';%s', 'Machine')
+		}`, path, path))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func isAdmin() bool {
+	_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
+	return err == nil
+}
+
+func runAsAdmin() error {
+	exe, err := os.Executable()
+	if err != nil {
 		return err
 	}
 
-	return nil
+	// Remove the -Wait flag so the original process can continue
+	cmd := exec.Command("powershell", "-Command", fmt.Sprintf(`Start-Process "%s" -ArgumentList "--elevated" -Verb RunAs`, exe))
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }

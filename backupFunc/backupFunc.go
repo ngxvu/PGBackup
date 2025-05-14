@@ -7,8 +7,43 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
+
+// PerformDatabaseBackups runs all database backups concurrently
+func PerformDatabaseBackups(creds *model.DatabaseCredentials, addPathVersion string) error {
+	var wg sync.WaitGroup
+	wgCount := 2
+	errChan := make(chan error, wgCount)
+
+	wg.Add(wgCount)
+
+	go func() {
+		defer wg.Done()
+		if err := backupDatabasePublic(creds, addPathVersion); err != nil {
+			errChan <- fmt.Errorf("error backing up public database: %v", err)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		if err := backupDatabaseNewSchema(creds, addPathVersion); err != nil {
+			errChan <- fmt.Errorf("error backing up private database: %v", err)
+		}
+	}()
+
+	// Wait for all goroutines to complete
+	wg.Wait()
+	close(errChan)
+
+	// Check for errors
+	for err := range errChan {
+		return err
+	}
+
+	return nil
+}
 
 func BackupDatabase(creds *model.DatabaseCredentials, version, schema string) error {
 	programFilesDir := "C:\\Program Files\\PostgreSQL\\" + version + "\\bin"
@@ -60,11 +95,11 @@ func createSchemaDir(schema string) (string, error) {
 	return schemaDir, nil
 }
 
-func BackupDatabasePublic(creds *model.DatabaseCredentials, version string) error {
+func backupDatabasePublic(creds *model.DatabaseCredentials, version string) error {
 	return BackupDatabase(creds, version, "public")
 }
 
 // to create new backup function, just copy the BackupDatabase function and change the schema name, for example:
-func BackupDatabaseNewSchema(creds *model.DatabaseCredentials, version string) error {
+func backupDatabaseNewSchema(creds *model.DatabaseCredentials, version string) error {
 	return BackupDatabase(creds, version, "dblog")
 }
